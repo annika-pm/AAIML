@@ -1,8 +1,9 @@
 import random
+import time  
 
 GRID_SIZE = 5
 START = (0, 0)  
-GOAL = (4, 4)   
+GOAL = (4, 4)  
 
 def random_position(exclude_positions=None):
     """Generate a random position on the grid, excluding certain positions."""
@@ -33,8 +34,8 @@ class ReflexAgent:
         if self.is_valid_move((x, y + 1)): moves.append('right')
         return moves
 
-    def move(self):
-        """Move the agent towards the goal."""
+    def move(self, previous_position):
+        """Move the agent towards the goal while avoiding backtracking."""
         possible_moves = self.get_possible_moves()
         if not possible_moves:
             print("No valid moves left. Agent is stuck!")
@@ -52,12 +53,12 @@ class ReflexAgent:
                 new_position = (self.position[0], self.position[1] - 1)
             elif move == 'right':
                 new_position = (self.position[0], self.position[1] + 1)
-
+            if new_position == previous_position:
+                continue
             distance = abs(new_position[0] - self.goal[0]) + abs(new_position[1] - self.goal[1])
             if distance < min_distance:
                 min_distance = distance
                 best_move = move
-
         if best_move == 'up':
             self.position = (self.position[0] - 1, self.position[1])
         elif best_move == 'down':
@@ -87,20 +88,23 @@ class ReflexAgent:
             print(row)
         print()
 
-    def run(self):
-        """Run the agent until it reaches the goal or gets stuck."""
+    def run(self, delay=1):
+        """Run the agent until it reaches the goal or gets stuck, with a delay between steps."""
         steps = 0
+        previous_position = None
         while not self.reached_goal():
             print(f"Step {steps}: Agent at {self.position}")
             self.print_grid()  
-            self.move()
+            self.move(previous_position)  
+            time.sleep(delay)  
+            previous_position = self.position 
             steps += 1
             if steps > 20:  
                 print("Max steps reached. Agent couldn't reach the goal.")
                 break
         if self.reached_goal():
             print(f"Goal reached in {steps} steps!")
-            self.print_grid()  
+            self.print_grid() 
 
 def main():
     obstacles = [random_position(exclude_positions=[START, GOAL]) for _ in range(3)]
@@ -108,7 +112,6 @@ def main():
         obstacles = [random_position(exclude_positions=[START, GOAL] + obstacles) for _ in range(3)]
     print(f"Start: {START}, Goal: {GOAL}, Obstacles: {obstacles}")
     agent = ReflexAgent(START, GOAL, obstacles)
-    agent.run()
-
+    agent.run(delay=1) 
 if __name__ == "__main__":
     main()
